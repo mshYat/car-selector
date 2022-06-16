@@ -23,7 +23,7 @@ const initialFiltersState: ICarsAttrs = {
 };
 
 function App() {
-  const [rtlMode, setRtlMode] = useState(false);
+  const [directionMode, setDirectionMode] = useState(false);
   const [resultCarName, setResultCarName] = useState("");
 
   const [selectedValue, setSelectedValue] = useState(initialFiltersState);
@@ -39,7 +39,7 @@ function App() {
   const uniqAttrs = useMemo(() => {
     let carsOfType = Cars;
 
-    if (!rtlMode) {
+    if (!directionMode) {
       attrsToSelect.forEach((p) => {
         if (selectedValue[p]) {
           carsOfType = carsOfType.filter(
@@ -56,7 +56,7 @@ function App() {
         result[p] = Array.from(new Set(carsOfType.map((car) => car[p]))).sort();
       }
 
-      if (rtlMode) {
+      if (directionMode) {
         if (selectedValue[p]) {
           carsOfType = carsOfType.filter(
             (car) => car[p].toString() === selectedValue[p]
@@ -66,7 +66,7 @@ function App() {
     });
 
     return result;
-  }, [rtlMode, selectedValue]);
+  }, [directionMode, selectedValue]);
 
   useEffect(() => {
     // Reset filters on type reset
@@ -86,14 +86,14 @@ function App() {
 
   return (
     <div className="app">
-      <div className="rtl-wrapper">
+      <div className="filter-mode-wrapper">
         <input
           type="checkbox"
-          id="rtl-mode"
-          checked={rtlMode}
-          onChange={() => setRtlMode(!rtlMode)}
+          id="filter-mode-mode"
+          checked={directionMode}
+          onChange={() => setDirectionMode(!directionMode)}
         />
-        <label htmlFor="rtl-mode"> Enable rtl filter mode</label>
+        <label htmlFor="filter-mode-mode">Enable direction filter mode</label>
       </div>
 
       <div className="selects-group">
