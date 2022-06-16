@@ -99,9 +99,13 @@ function App() {
       <div className="selects-group">
         <>
           <select
-            name="type"
             value={selectedValue.type}
-            onChange={handleSelectChange}
+            onChange={(e) =>
+              setSelectedValue({
+                ...initialFiltersState,
+                type: e.target.value,
+              })
+            }
           >
             <option value="">Select type</option>
             {uniqTypes.map((t) => (
