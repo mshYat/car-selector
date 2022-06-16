@@ -1,10 +1,142 @@
-import React from 'react';
-import './App.css';
+import { useEffect, useMemo, useState } from "react";
+import { Cars, CarType } from "./consts/Cars";
+import "./App.scss";
+
+const uniqTypes: CarType[] = Array.from(
+  new Set(Cars.map((car) => car.type))
+).sort();
+
+export interface ICarsAttrs {
+  type: string;
+  color: string;
+  seats: string;
+  tires: string;
+}
+
+const attrsToSelect: (keyof ICarsAttrs)[] = ["type", "color", "seats", "tires"];
+
+const initialFiltersState: ICarsAttrs = {
+  type: "",
+  color: "",
+  seats: "",
+  tires: "",
+};
 
 function App() {
+  const [rtlMode, setRtlMode] = useState(false);
+  const [resultCarName, setResultCarName] = useState("");
+
+  const [selectedValue, setSelectedValue] = useState(initialFiltersState);
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setSelectedValue({
+      ...selectedValue,
+      [name]: value,
+    });
+  };
+
+  const uniqAttrs = useMemo(() => {
+    let carsOfType = Cars;
+
+    if (!rtlMode) {
+      attrsToSelect.forEach((p) => {
+        if (selectedValue[p]) {
+          carsOfType = carsOfType.filter(
+            (car) => car[p].toString() === selectedValue[p]
+          );
+        }
+      });
+    }
+
+    let result: { [key: string]: (string | number)[] } = {};
+    attrsToSelect.forEach((p) => {
+      // exclude type from result
+      if (p !== "type") {
+        result[p] = Array.from(new Set(carsOfType.map((car) => car[p]))).sort();
+      }
+
+      if (rtlMode) {
+        if (selectedValue[p]) {
+          carsOfType = carsOfType.filter(
+            (car) => car[p].toString() === selectedValue[p]
+          );
+        }
+      }
+    });
+
+    return result;
+  }, [rtlMode, selectedValue]);
+
+  useEffect(() => {
+    // Reset filters on type reset
+    if (!selectedValue.type && (selectedValue.color || selectedValue.seats)) {
+      setSelectedValue(initialFiltersState);
+    }
+
+    const foundCar = Cars.filter(
+      (car) =>
+        car.type === selectedValue.type &&
+        car.color === selectedValue.color &&
+        car.seats.toString() === selectedValue.seats &&
+        car.tires === selectedValue.tires
+    );
+    setResultCarName(foundCar.length === 1 ? foundCar[0].fullName : "");
+  }, [selectedValue]);
+
   return (
-    <div className="App">
-      test
+    <div className="app">
+      <div className="rtl-wrapper">
+        <input
+          type="checkbox"
+          id="rtl-mode"
+          checked={rtlMode}
+          onChange={() => setRtlMode(!rtlMode)}
+        />
+        <label htmlFor="rtl-mode"> Enable rtl filter mode</label>
+      </div>
+
+      <div className="selects-group">
+        <>
+          <select
+            name="type"
+            value={selectedValue.type}
+            onChange={handleSelectChange}
+          >
+            <option value="">Select type</option>
+            {uniqTypes.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+
+          {Object.keys(uniqAttrs).map((attrKey) => {
+            return (
+              <select
+                key={attrKey}
+                name={attrKey}
+                value={(selectedValue as any)[attrKey]}
+                onChange={handleSelectChange}
+                disabled={!selectedValue.type}
+              >
+                <option value="">Select {attrKey}</option>
+                {uniqAttrs[attrKey].map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            );
+          })}
+        </>
+      </div>
+
+      <div className="selected-car">
+        <h2>
+          {resultCarName.length ? resultCarName : "Please select filters"}
+        </h2>
+      </div>
     </div>
   );
 }
